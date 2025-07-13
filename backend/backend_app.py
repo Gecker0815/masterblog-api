@@ -52,6 +52,7 @@ def get_posts():
 
     return jsonify(POSTS), 201
 
+
 @app.route('/api/posts/<id>', methods=['DELETE'])
 def delete_post(id):
     try:
@@ -66,6 +67,45 @@ def delete_post(id):
             POSTS.remove(post)
             return jsonify({
                 "message": f"Post with id {post_id} has been deleted successfully."
+            }), 200
+
+    return jsonify({
+        "error": f"No post with id {post_id} exists.",
+        "status": 404
+    }), 404
+
+
+@app.route('/api/posts/<id>', methods=['PUT'])
+def update_post(id):
+    try:
+        post_id = int(id)
+    except ValueError:
+        return jsonify({
+            "error": "Invalid ID format",
+        }), 400
+
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return jsonify({
+            "error": "Invalid JSON",
+            "status": 400
+        }), 400
+
+    title = data.get('title')
+    content = data.get('content')
+
+    for post in POSTS:
+        if post["id"] == post_id:
+            if title:
+                post["title"] = title
+            if content:
+                post["content"] = content
+
+            return jsonify({
+                "id": post["id"],
+                "title": post["title"],
+                "content": post["content"]
             }), 200
 
     return jsonify({
