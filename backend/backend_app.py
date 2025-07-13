@@ -72,7 +72,36 @@ def get_posts():
             "content": content
         })
 
-    return jsonify(POSTS), 201
+    # sort posts
+    if request.method == 'GET':
+        sort = request.args.get('sort')
+        direction = request.args.get('direction')
+
+        missing_fields = []
+        if not sort:
+            missing_fields.append('sort')
+        if not direction:
+            missing_fields.append('direction')
+        if not sort and not direction:
+            return jsonify(POSTS), 200
+
+        if missing_fields:
+            return jsonify({
+                "error": f"The following field(s) are required: {', '.join(missing_fields)}",
+                "status": 400
+            }), 400
+
+        if sort not in ("title", "content"):
+            return jsonify({
+                "error": "Sort must be either 'title' or 'content'.",
+                "status": 400
+            }), 400
+
+        reverse = direction.lower() == "desc"
+
+        POSTS.sort(key=lambda post: post[sort], reverse=reverse)
+
+        return jsonify(POSTS), 200
 
 
 @app.route('/api/posts/<id>', methods=['DELETE'])
