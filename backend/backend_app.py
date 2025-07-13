@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import json
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
+limiter = Limiter(app=app, key_func=get_remote_address)
 
 POSTS = [
     {"id": 1, "title": "First post", "content": "This is the first post."},
@@ -40,6 +43,7 @@ def search_post():
 
 
 @app.route('/api/posts', methods=['GET', 'POST'])
+@limiter.limit("10/minute")
 def get_posts():
     if request.method == 'POST':
         try:
